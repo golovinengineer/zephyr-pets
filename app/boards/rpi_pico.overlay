@@ -10,10 +10,10 @@
 		blink-period-ms = <1000>;
 	};
 
-    chosen {
-		zephyr,console = &cdc_acm_uart0;
-        zephyr,shell-uart = &cdc_acm_uart0;
-	};
+    // chosen {
+	// 	zephyr,console = &cdc_acm_uart0;
+    //     zephyr,shell-uart = &cdc_acm_uart0;
+	// };
 
     aliases {
         light-sensor = &veml7700;
@@ -32,5 +32,49 @@
 &zephyr_udc0 {
 	cdc_acm_uart0: cdc_acm_uart0 {
 		compatible = "zephyr,cdc-acm-uart";
+	};
+};
+
+&flash0 {
+	reg = <0x10000000 DT_SIZE_M(2)>;
+
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		/* Reserved memory for the second stage bootloader */
+		// second_stage_bootloader: partition@0 {
+		// 	label = "second_stage_bootloader";
+		// 	reg = <0x00000000 0x100>;
+		// 	read-only;
+		// };
+
+		/*
+		 * Usable flash. Starts at 0x100, after the bootloader. The partition
+		 * size is 2MB minus the 0x100 bytes taken by the bootloader.
+		 */
+		// code_partition: partition@100 {
+		// 	label = "code-partition";
+		// 	reg = <0x100 (DT_SIZE_M(2) - 0x100)>;
+		// 	read-only;
+		// };
+
+        boot_partition: partition@0 {
+            label = "mcuboot";
+            reg = <0x00000000 0xc000>;
+        };
+        slot0_partition: partition@c000 {
+            label = "image-0";
+            reg = <0x0000c000 0x00100000>;
+        };
+        slot1_partition: partition@100000 {
+            label = "image-1";
+            reg = <0x00100000 0x001f4000>;
+        };
+        storage_partition: partition@1f4000 {
+            label = "storage";
+            reg = <0x001f4000 0x00200000>;
+        };
 	};
 };
