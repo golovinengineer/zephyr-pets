@@ -1,15 +1,15 @@
 # Zephyr Example Application
 
-<a href="https://github.com/zephyrproject-rtos/example-application/actions/workflows/build.yml?query=branch%3Amain">
-  <img src="https://github.com/zephyrproject-rtos/example-application/actions/workflows/build.yml/badge.svg?event=push">
+<a href="https://github.com/golovinengineer/zephyr-pets/actions/workflows/build.yml?query=branch%3Amain">
+  <img src="https://github.com/golovinengineer/zephyr-pets/actions/workflows/build.yml/badge.svg?event=push">
 </a>
-<a href="https://github.com/zephyrproject-rtos/example-application/actions/workflows/docs.yml?query=branch%3Amain">
-  <img src="https://github.com/zephyrproject-rtos/example-application/actions/workflows/docs.yml/badge.svg?event=push">
+<a href="https://github.com/golovinengineer/zephyr-pets/actions/workflows/docs.yml?query=branch%3Amain">
+  <img src="https://github.com/golovinengineer/zephyr-pets/actions/workflows/docs.yml/badge.svg?event=push">
 </a>
-<a href="https://zephyrproject-rtos.github.io/example-application">
+<a href="https://golovinengineer.github.io/zephyr-pets">
   <img alt="Documentation" src="https://img.shields.io/badge/documentation-3D578C?logo=sphinx&logoColor=white">
 </a>
-<a href="https://zephyrproject-rtos.github.io/example-application/doxygen">
+<a href="https://golovinengineer.github.io/zephyr-pets/doxygen">
   <img alt="API Documentation" src="https://img.shields.io/badge/API-documentation-3D578C?logo=c&logoColor=white">
 </a>
 
