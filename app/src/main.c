@@ -1,80 +1,40 @@
 /*
- * Copyright (c) 2021 Nordic Semiconductor ASA
+ * Copyright (c) 2016 Intel Corporation
+ *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <zephyr/kernel.h>
+#include <zephyr/init.h>
+#include <stdio.h>
 #include <zephyr/drivers/sensor.h>
-#include <zephyr/logging/log.h>
 
-#include <app/drivers/blink.h>
-
-#include <app_version.h>
-
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
-
-#define BLINK_PERIOD_MS_STEP 100U
-#define BLINK_PERIOD_MS_MAX  1000U
+#define SLEEP_TIME	K_MSEC(1000)
 
 int main(void)
 {
-	int ret;
-	unsigned int period_ms = BLINK_PERIOD_MS_MAX;
-	const struct device *sensor, *blink;
-	struct sensor_value last_val = { 0 }, val;
+	const struct device *const dev = DEVICE_DT_GET_ANY(vishay_veml7700);
 
-	printk("Zephyr Example Application %s\n", APP_VERSION_STRING);
-
-	sensor = DEVICE_DT_GET(DT_NODELABEL(example_sensor));
-	if (!device_is_ready(sensor)) {
-		LOG_ERR("Sensor not ready");
+	if (!device_is_ready(dev)) {
+		printk("sensor: device not ready.\n");
 		return 0;
 	}
-
-	blink = DEVICE_DT_GET(DT_NODELABEL(blink_led));
-	if (!device_is_ready(blink)) {
-		LOG_ERR("Blink LED not ready");
-		return 0;
-	}
-
-	ret = blink_off(blink);
-	if (ret < 0) {
-		LOG_ERR("Could not turn off LED (%d)", ret);
-		return 0;
-	}
-
-	printk("Use the sensor to change LED blinking period\n");
 
 	while (1) {
-		ret = sensor_sample_fetch(sensor);
-		if (ret < 0) {
-			LOG_ERR("Could not fetch sample (%d)", ret);
-			return 0;
+		int read;
+		struct sensor_value lux;
+
+		read = sensor_sample_fetch(dev);
+		if (read) {
+			printf("sample fetch error %d\n", read);
+			continue;
 		}
 
-		ret = sensor_channel_get(sensor, SENSOR_CHAN_PROX, &val);
-		if (ret < 0) {
-			LOG_ERR("Could not get sample (%d)", ret);
-			return 0;
-		}
+		sensor_channel_get(dev, SENSOR_CHAN_LIGHT, &lux);
 
-		if ((last_val.val1 == 0) && (val.val1 == 1)) {
-			if (period_ms == 0U) {
-				period_ms = BLINK_PERIOD_MS_MAX;
-			} else {
-				period_ms -= BLINK_PERIOD_MS_STEP;
-			}
+		printk("lux: %f\n", sensor_value_to_double(&lux));
 
-			printk("Proximity detected, setting LED period to %u ms\n",
-			       period_ms);
-			blink_set_period_ms(blink, period_ms);
-		}
-
-		last_val = val;
-
-		k_sleep(K_MSEC(100));
+		k_sleep(SLEEP_TIME);
 	}
-
 	return 0;
 }
-
