@@ -13,7 +13,7 @@
 
 int main(void)
 {
-	const struct device *const dev = DEVICE_DT_GET_ANY(vishay_veml7700);
+	const struct device *const dev = DEVICE_DT_GET(DT_ALIAS(light_sensor));
 
 	if (!device_is_ready(dev)) {
 		printk("sensor: device not ready.\n");
