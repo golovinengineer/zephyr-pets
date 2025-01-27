@@ -1,5 +1,5 @@
 CompileFlags:
-  CompilationDatabase: build/app
+  CompilationDatabase: build
 
   # Additional include paths specific to Zephyr RTOS (replace <path-to-zephyr-root> with your actual path)
   Add:
