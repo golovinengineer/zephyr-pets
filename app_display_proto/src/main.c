@@ -17,6 +17,7 @@
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #include <string.h>
 #include <zephyr/display/cfb.h>
+#include "cfbv_2948.h"
 
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS 500
@@ -184,7 +185,7 @@ int main(void) {
     LOG_INF("x_res %d, y_res %d, ppt %d, rows %d, cols %d", x_res, y_res, ppt, rows,
             cfb_get_display_parameter(display_dev, CFB_DISPLAY_COLS));
     /*cfb_framebuffer_invert(display_dev);*/
-    cfb_framebuffer_set_font(display_dev, 2);
+    cfb_framebuffer_set_font(display_dev, 0);
     display_set_brightness(display_dev, 100);
 
     cfb_set_kerning(display_dev, 3);
@@ -218,7 +219,7 @@ int main(void) {
         led_state = !led_state;
 
         cfb_framebuffer_clear(display_dev, false);
-        if (cfb_print(display_dev, oled_str, 0, 0)) {
+        if (cfb_print(display_dev, oled_str, 0, 10)) {
             LOG_ERR("Failed to print a string");
             continue;
         }
