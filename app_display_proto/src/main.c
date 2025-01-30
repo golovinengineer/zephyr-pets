@@ -184,35 +184,12 @@ int main(void) {
     LOG_INF("x_res %d, y_res %d, ppt %d, rows %d, cols %d", x_res, y_res, ppt, rows,
             cfb_get_display_parameter(display_dev, CFB_DISPLAY_COLS));
     /*cfb_framebuffer_invert(display_dev);*/
+    cfb_framebuffer_set_font(display_dev, 2);
     display_set_brightness(display_dev, 100);
 
     cfb_set_kerning(display_dev, 3);
     while (1) {
 
-        //        for (uint8_t i = 0; i < 128; i++) {
-        //            led_on(seg_display, i);
-        //            k_sleep(K_MSEC(10));
-        //        }
-        //
-        //        for (uint16_t i = 500; i <= 2000; i *= 2) {
-        //            LOG_INF("Blinking LEDs with a period of %d ms", i);
-        //            led_blink(seg_display, 0, i / 2, i / 2);
-        //            k_msleep(10 * i);
-        //        }
-        //        led_blink(seg_display, 0, 0, 0);
-        //
-        //        for (uint8_t i = 100; i >= 0; i -= 10) {
-        //            LOG_INF("Setting LED brightness to %d%%", i);
-        //            led_set_brightness(seg_display, 0, i);
-        //            k_sleep(K_MSEC(1000));
-        //        }
-        //
-        //        LOG_INF("Turning all LEDs off and restoring 100%% brightness");
-        //        for (uint8_t i = 0; i < 128; i++) {
-        //            led_off(seg_display, i);
-        //        }
-        //        led_set_brightness(seg_display, 0, 100);
-        //
         struct sensor_value temp, hum;
 
         err = sensor_sample_fetch(aht20);
@@ -226,11 +203,10 @@ int main(void) {
             LOG_ERR("aht20 sample fetch is failed: %d", err);
         }
 
-        //        LOG_INF("SHT3XD: %.2f Cel ; %0.2f %%RH", sensor_value_to_double(&temp),
-        //                sensor_value_to_double(&hum));
-
         char temp_str[5];
+        char oled_str[6];
         snprintf(temp_str, 5, "%3.1f", sensor_value_to_double(&temp));
+        snprintf(oled_str, 5, "%3.1fC", sensor_value_to_double(&temp));
         seg_display_show(temp_str);
 
         err = gpio_pin_toggle_dt(&led);
@@ -241,15 +217,13 @@ int main(void) {
 
         led_state = !led_state;
 
-        for (int i = 0; i < MIN(x_res, y_res); i++) {
-            cfb_framebuffer_clear(display_dev, false);
-            if (cfb_print(display_dev, "36.6°C", i, i)) {
-                LOG_ERR("Failed to print a string");
-                continue;
-            }
-
-            cfb_framebuffer_finalize(display_dev);
+        cfb_framebuffer_clear(display_dev, false);
+        if (cfb_print(display_dev, oled_str, 0, 0)) {
+            LOG_ERR("Failed to print a string");
+            continue;
         }
+
+        cfb_framebuffer_finalize(display_dev);
         k_msleep(SLEEP_TIME_MS);
     }
     return 0;
