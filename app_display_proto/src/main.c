@@ -17,7 +17,7 @@
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #include <string.h>
 #include <zephyr/display/cfb.h>
-#include "cfbv_2948.h"
+#include "cfbv_3048.h"
 
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS 500
