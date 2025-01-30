@@ -15,8 +15,8 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
-#include <lvgl.h>
 #include <string.h>
+#include <zephyr/display/cfb.h>
 
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS 500
@@ -120,9 +120,14 @@ static int seg_display_show(char *str) {
 int main(void) {
     int err;
     bool led_state = true;
+    uint16_t x_res;
+    uint16_t y_res;
+    uint16_t rows;
+    uint8_t ppt;
+    uint8_t font_width;
+    uint8_t font_height;
 
     const struct device *display_dev;
-    lv_obj_t *hello_world_label;
 
     display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
     if (!device_is_ready(display_dev)) {
@@ -146,12 +151,42 @@ int main(void) {
         LOG_ERR("led gpio configuration is failed");
     }
 
-    lv_label_set_text(hello_world_label, "Hello world!");
-    lv_obj_align(hello_world_label, LV_ALIGN_CENTER, 0, 0);
+    if (display_set_pixel_format(display_dev, PIXEL_FORMAT_MONO10) != 0) {
+        if (display_set_pixel_format(display_dev, PIXEL_FORMAT_MONO01) != 0) {
+            LOG_ERR("Failed to set required pixel format");
+            return 0;
+        }
+    }
 
-    lv_task_handler();
+    printf("Initialized %s\n", display_dev->name);
+
+    if (cfb_framebuffer_init(display_dev)) {
+        LOG_ERR("Framebuffer initialization failed!");
+        return 0;
+    }
+
+    cfb_framebuffer_clear(display_dev, true);
+
     display_blanking_off(display_dev);
 
+    x_res = cfb_get_display_parameter(display_dev, CFB_DISPLAY_WIDTH);
+    y_res = cfb_get_display_parameter(display_dev, CFB_DISPLAY_HEIGH);
+    rows = cfb_get_display_parameter(display_dev, CFB_DISPLAY_ROWS);
+    ppt = cfb_get_display_parameter(display_dev, CFB_DISPLAY_PPT);
+
+    for (int idx = 0; idx < 42; idx++) {
+        if (cfb_get_font_size(display_dev, idx, &font_width, &font_height)) {
+            break;
+        }
+        cfb_framebuffer_set_font(display_dev, idx);
+        LOG_INF("font width %d, font height %d", font_width, font_height);
+    }
+    LOG_INF("x_res %d, y_res %d, ppt %d, rows %d, cols %d", x_res, y_res, ppt, rows,
+            cfb_get_display_parameter(display_dev, CFB_DISPLAY_COLS));
+    /*cfb_framebuffer_invert(display_dev);*/
+    display_set_brightness(display_dev, 100);
+
+    cfb_set_kerning(display_dev, 3);
     while (1) {
 
         //        for (uint8_t i = 0; i < 128; i++) {
@@ -206,8 +241,15 @@ int main(void) {
 
         led_state = !led_state;
 
-        lv_task_handler();
+        for (int i = 0; i < MIN(x_res, y_res); i++) {
+            cfb_framebuffer_clear(display_dev, false);
+            if (cfb_print(display_dev, "36.6°C", i, i)) {
+                LOG_ERR("Failed to print a string");
+                continue;
+            }
 
+            cfb_framebuffer_finalize(display_dev);
+        }
         k_msleep(SLEEP_TIME_MS);
     }
     return 0;
