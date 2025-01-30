@@ -219,7 +219,7 @@ int main(void) {
         led_state = !led_state;
 
         cfb_framebuffer_clear(display_dev, false);
-        if (cfb_print(display_dev, oled_str, 0, 10)) {
+        if (cfb_print(display_dev, oled_str, 0, 12)) {
             LOG_ERR("Failed to print a string");
             continue;
         }
