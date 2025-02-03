@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <stdint.h>
 #include <stdio.h>
 /*#include <stdlib.h>*/
 
@@ -20,10 +21,14 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 #include "cfbv_3048.h"
 
 /* 1000 msec = 1 sec */
-#define SLEEP_TIME_MS 500
+#define SLEEP_TIME_MS      500
+#define PRINT_TEMP_N_HUMID BIT(0)
 
 /* The devicetree node identifier for the "led0" alias. */
 #define LED0_NODE DT_ALIAS(led0)
+
+static struct k_timer print_timer;
+static struct k_event display_event;
 
 /*
  * A build error on this line means your board is unsupported.
@@ -53,6 +58,8 @@ static const uint8_t seg_display_font_table[] = {
 static int seg_display_show(char *str) {
     int err = 0;
     uint8_t digit_cursor = 5 - strlen(str);
+
+    led_set_brightness(seg_display, 0, 25);
 
     for (int i = 0; i < strlen(str); i++) {
         switch (str[i]) {
@@ -116,6 +123,10 @@ static int seg_display_show(char *str) {
         }
     }
     return err;
+}
+
+void print_timer_expire(struct k_timer *timer_id) {
+    k_event_post(&display_event, PRINT_TEMP_N_HUMID);
 }
 
 int main(void) {
@@ -184,11 +195,18 @@ int main(void) {
     }
     LOG_INF("x_res %d, y_res %d, ppt %d, rows %d, cols %d", x_res, y_res, ppt, rows,
             cfb_get_display_parameter(display_dev, CFB_DISPLAY_COLS));
-    /*cfb_framebuffer_invert(display_dev);*/
-    cfb_framebuffer_set_font(display_dev, 0);
-    display_set_brightness(display_dev, 100);
 
-    cfb_set_kerning(display_dev, 3);
+    cfb_framebuffer_set_font(display_dev, 0);
+
+    err = display_set_contrast(display_dev, 255);
+    if (err) {
+        LOG_ERR("set contrast: %d", err);
+    }
+
+    cfb_set_kerning(display_dev, -2);
+
+    k_timer_init(&print_timer, print_timer_expire, NULL);
+    k_timer_start(&print_timer, K_NO_WAIT, K_MINUTES(1));
     while (1) {
 
         struct sensor_value temp, hum;
@@ -207,7 +225,7 @@ int main(void) {
         char temp_str[5];
         char oled_str[6];
         snprintf(temp_str, 5, "%3.1f", sensor_value_to_double(&temp));
-        snprintf(oled_str, 5, "%3.1fC", sensor_value_to_double(&temp));
+        snprintf(oled_str, 6, "%3.1fC", sensor_value_to_double(&temp));
         seg_display_show(temp_str);
 
         err = gpio_pin_toggle_dt(&led);
@@ -225,7 +243,14 @@ int main(void) {
         }
 
         cfb_framebuffer_finalize(display_dev);
-        k_msleep(SLEEP_TIME_MS);
+        uint32_t events = k_event_wait(&display_event, BIT(0), false, K_MSEC(500));
+        if (events) {
+            if (events & BIT(0)) {
+                LOG_INF("%3.1f°C, %3.1f%%", sensor_value_to_double(&temp),
+                        sensor_value_to_double(&hum));
+                k_event_clear(&display_event, BIT(0));
+            }
+        }
     }
     return 0;
 }
