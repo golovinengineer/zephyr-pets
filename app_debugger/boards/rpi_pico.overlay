@@ -1,0 +1,19 @@
+/*
+ * Copyright (c) 2023 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	dp0 {
+		compatible = "zephyr,swdp-gpio";
+		status = "okay";
+		clk-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH>;	/* D4 */
+		dio-gpios = <&gpio0 13 GPIO_PULL_UP>;		/* D2 */
+		dout-gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;	/* D3 */
+		dnoe-gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;	/* D6 */
+		noe-gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;	/* D5 */
+		reset-gpios = <&gpio0 10 GPIO_ACTIVE_HIGH>;	/* D7 */
+		port-write-cycles = <2>;
+	};
+};
