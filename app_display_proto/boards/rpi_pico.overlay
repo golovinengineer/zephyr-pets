@@ -9,7 +9,10 @@
 		dht0 = &aht20;
 	};
     chosen {
-		zephyr,display = &ssd1306_ssd1306_128x64;
+        zephyr,console = &cdc_acm_uart0;
+        zephyr,shell-uart = &cdc_acm_uart0;
+		zephyr,uart-mcumgr = &cdc_acm_uart0; // Optional, for MCUboot or DFU
+        zephyr,display = &ssd1306_ssd1306_128x64;
 	};
 };
 
@@ -46,5 +49,13 @@
 		segment-remap;
 		com-invdir;
 		prechargep = <0x62>;
+	};
+};
+
+&zephyr_udc0 {
+    status = "okay";
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+		label = "Zephyr USB CDC-ACM";
 	};
 };
