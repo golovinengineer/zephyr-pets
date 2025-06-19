@@ -1,0 +1,10 @@
+/*
+ * This file was automatically generated using the following command:
+ * ..\zephyr\scripts\build\gen_cfb_font_header.py -i app_display_proto\FiraCodeNerdFontMono-Retina.ttf -x 20 -y 32 -s 30 --center-x --y-offset -3 -o cfbv_2032
+ *
+ */
+
+#include <zephyr/kernel.h>
+#include <zephyr/display/cfb.h>
+
+static const uint8_t cfb_font_custom_2032[95][80] = {
